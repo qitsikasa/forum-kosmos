@@ -1,6 +1,11 @@
-import 'dart:convert';
-import 'dart:html' as html; // Import para Flutter Web
+// Crear un nuevo usuario en Firestore
 import 'package:flutter/material.dart';
+import 'package:forum/services/firestore_service.dart';
+import 'package:forum/services/discord_auth.dart';
+import 'package:universal_html/html.dart' as html;
+
+
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,16 +15,73 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+
+  final DiscordAuthService _discordAuthService = DiscordAuthService();
+
+  final FirestoreService _firestoreService = FirestoreService();
+
   GlobalKey<FormState> keyForm = GlobalKey<FormState>();
   TextEditingController usernameCtrl = TextEditingController();
   TextEditingController emailCtrl = TextEditingController();
   TextEditingController passwordCtrl = TextEditingController();
   TextEditingController repeatPassCtrl = TextEditingController();
 
-  String gender = 'hombre';
+  bool _isCodeProcessed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Verifica el código de autorización al cargar la página
+    final uri = Uri.parse(html.window.location.href);
+    if (uri.queryParameters.containsKey('code')) {
+      final code = uri.queryParameters['code']!;
+      _handleDiscordCallback(code);
+    }
+  }
+
+  Future<void> _handleDiscordCallback(String code) async {
+  try {
+    if (_isCodeProcessed) {
+      print('Código ya procesado, ignorando...');
+      return;
+    }
+
+    print('Procesando código de Discord: $code');
+    setState(() {
+      _isCodeProcessed = true;
+    });
+    
+    await _discordAuthService.handleRedirect(code);
+    print('Proceso de registro completado');
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Registro exitoso con Discord'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Opcional: navegar a otra página después del registro exitoso
+    // Navigator.of(context).pushReplacementNamed('/home');
+  } catch (e) {
+    print('Error detallado en el registro con Discord: $e');
+    setState(() {
+      _isCodeProcessed = false; // Permite reintentar en caso de error
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error en el registro: ${e.toString()}'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Registrarse'),
@@ -35,7 +97,6 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
-
   Widget formItemsDesign(IconData icon, Widget item) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 7),
@@ -45,7 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget formUI() {
     return Center(
-      child: Container(
+      child: SizedBox(
         width: 500,
         child: Column(
           children: <Widget>[
@@ -86,6 +147,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 validator: validateRepeatPassword,
               ),
             ),
+            formItemsDesign(
+              Icons.discord,
+              ElevatedButton.icon(
+                onPressed: _discordAuthService.loginWithDiscord,
+                icon: Icon(Icons.discord),
+                label: Text('Registrarse con Discord'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5865F2), // Color oficial de Discord
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
             GestureDetector(
               onTap: save,
               child: Container(
@@ -118,6 +191,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ],
+          
         ),
       ),
     );
@@ -174,20 +248,8 @@ class _RegisterPageState extends State<RegisterPage> {
         'password': passwordCtrl.text,
       };
 
-      // Usar LocalStorage para Flutter Web
-      List<dynamic> users = [];
-      final jsonData = html.window.localStorage['usuarios'];
-      if (jsonData != null && jsonData.isNotEmpty) {
-        try {
-          users = jsonDecode(jsonData);
-        } catch (e) {
-          users = [];
-        }
-      }
-
-      users.add(user);
-      html.window.localStorage['usuarios'] = jsonEncode(users);
-      print("Usuarios actualizados: ${jsonEncode(users)}");
+      // Guardar el usuario en Firestore usando FirestoreService
+      await _firestoreService.addUser(user['username'], user['email'], user['password']);
 
       setState(() {
         usernameCtrl.clear();

@@ -29,8 +29,20 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Kozmic Fo</title>
+  <title>Kozmic Forum</title>
   <link rel="manifest" href="manifest.json">
+
+  <script src="https://unpkg.com/url_launcher_web/url_launcher_web.dart.js"></script>
+
+  <style>
+    /* Estilo para el iframe */
+    iframe {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000; /* Asegúrate de que el iframe esté por encima del contenido de Flutter */
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

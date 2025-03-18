@@ -1,9 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:forum/login/registerUser.dart';
-import 'firebase_options.dart';
+import 'package:forum/login/register_user.dart';
+import 'services/firebase_options.dart';
+import 'login/login_user.dart';
+import 'services/auth.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +33,8 @@ class ForoClasicoApp extends StatelessWidget {
 }
 
 class ForoHomePage extends StatelessWidget {
+  const ForoHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,6 +50,56 @@ class ForoHomePage extends StatelessWidget {
             Text("Foro Windows ME", style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  final user = snapshot.data!;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Iniciaste sesión como: ${user.email}",
+                        style: TextStyle(fontSize: 12, color: Colors.white),
+                      ),
+                      SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () async {
+                          final auth = Auth();
+                          await auth.signOut();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Sesión cerrada correctamente'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Cerrar Sesión",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Center(
+                    child: Text(
+                      "No has iniciado sesión",
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
         backgroundColor: Color.fromARGB(255, 18, 180, 249), // Azul Windows ME
         elevation: 8,
         shadowColor: Colors.blueAccent,
@@ -54,6 +109,7 @@ class ForoHomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
+              height: 275,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -93,7 +149,9 @@ class ForoHomePage extends StatelessWidget {
                     "Explora los hilos y revive la era dorada del internet",
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 40),
+                  Text("Si eres nuevo registrate:", style: TextStyle(color: Colors.white)),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF00A2E8),
@@ -107,10 +165,31 @@ class ForoHomePage extends StatelessWidget {
                       // Navegar a la página de login
                       Navigator.push(
                         context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    },
+                    child: Text("Iniciar Sesion", style: TextStyle(color: Colors.white)),
+                  ),
+                  SizedBox(height: 10),
+                  Text("Si eres nuevo registrate:", style: TextStyle(color: Colors.white)),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF00A2E8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      shadowColor: Colors.blueAccent,
+                      elevation: 10,
+                    ),
+                    onPressed: () {
+                      // Navegar a la página de register
+                      Navigator.push(
+                        context,
                         MaterialPageRoute(builder: (context) => RegisterPage()),
                       );
                     },
-                    child: Text("Registrate para acceder", style: TextStyle(color: Colors.white)),
+                    child: Text("Crea Una Cuenta", style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
