@@ -1,3 +1,5 @@
 # forum
 
-A new Flutter project.
+An project about a forum
+
+Pre-Alpha vercion pre-release
