@@ -1,0 +1,37 @@
+{
+    "hosting": {
+          "public": "build/web",
+          "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+          ],
+          "rewrites": [
+            {
+              "source": "**",
+              "destination": "/index.html"
+            }
+          ]
+        },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "forum-test-a2e3b",
+                    "appId": "1:931598589654:android:17f5ccc6e6bbc69730f377",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "forum-test-a2e3b",
+                    "configurations": {
+                        "android": "1:931598589654:android:17f5ccc6e6bbc69730f377",
+                        "ios": "1:931598589654:ios:4ca7b89da95407c230f377",
+                        "web": "1:931598589654:web:28431faeb4be81ee30f377"
+                    }
+                }
+            }
+        }
+    }
+}
