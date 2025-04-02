@@ -126,11 +126,11 @@ class DiscordAuthService {
           await _signInExistingUser(email);
         } else {
           print('Error de Firebase Auth: ${e.message}');
-          throw e;
+          rethrow;
         }
       } else {
         print('Error al crear usuario: $e');
-        throw e;
+        rethrow;
       }
     }
   }
@@ -152,7 +152,7 @@ class DiscordAuthService {
       print('Usuario existente actualizado: $email');
     } catch (e) {
       print('Error al actualizar usuario existente: $e');
-      throw e;
+      rethrow;
     }
   }
 }
